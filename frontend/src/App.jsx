@@ -1,103 +1,88 @@
-function App() {
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import useAuth from './hooks/useAuth';
+import useTranslation from './hooks/useTranslation';
+
+// Беттер
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ApplicantDashboard from './pages/ApplicantDashboard';
+import AdminDashboard from './pages/AdminDashboard';
+import ApplicationForm from './pages/ApplicationForm';
+import NotFoundPage from './pages/NotFoundPage';
+// Жаңа беттер
+import RatingPage from './pages/RatingPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import MessagesPage from './pages/MessagesPage';
+import ProfilePage from './pages/ProfilePage';
+
+// Компоненттер
+import ProtectedRoute from './components/ProtectedRoute';
+import LoadingSpinner from './components/LoadingSpinner';
+
+// Беттер ауысқанда жоғарыға скролл жасайды
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+  useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  return null;
+};
+
+// Негізгі қосымша — барлық маршруттар осы жерде анықталады
+const App = () => {
+  const { isAuthLoading, isAuthenticated, isAdmin } = useAuth();
+  const { t } = useTranslation();
+
+  // Auth күйі жүктелуде — толық экран спиннер
+  if (isAuthLoading) {
+    return <LoadingSpinner fullPage text={t('common.loading')} />;
+  }
+
   return (
-    <div className="auth-page">
-      <div className="left-pane">
-        <div className="lang-switch">
-          <button className="lang active" type="button">
-            ҚАЗ
-          </button>
-          <button className="lang" type="button">
-            РУС
-          </button>
-        </div>
+    <>
+      <ScrollToTop />
+      <Routes>
+        {/* ── Ашық маршруттар (тіркелмегендерге) ── */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        {/* Рейтинг — тіркелмеген пайдаланушылар да көре алады */}
+        <Route path="/rating" element={<RatingPage />} />
 
-        <div className="brand">
-          <span className="brand-icon">🏛️</span>
-          Приёмная Комиссия
-        </div>
+        {/* ── Абитуриент маршруттары ── */}
+        <Route element={<ProtectedRoute requiredRole="applicant" />}>
+          <Route path="/dashboard" element={<ApplicantDashboard />} />
+          <Route path="/messages" element={<MessagesPage />} />
+          <Route path="/applications/new" element={<ApplicationForm />} />
+          <Route path="/applications/edit/:id" element={<ApplicationForm />} />
+        </Route>
 
-        <div className="label">ОФИЦИАЛЬНЫЙ ПОРТАЛ УНИВЕРСИТЕТА</div>
-        <p className="line-hint">● Приёмный процесс в цифровом формате</p>
+        <Route element={<ProtectedRoute />}>
+          <Route path="/profile" element={<ProfilePage />} />
+        </Route>
 
-        <div className="floating-card smart">
-          <strong>Смарт-заявка</strong>
-          <p>Управляйте несколькими направлениями из одного кабинета</p>
-        </div>
+        {/* ── Админ маршруттары ── */}
+        <Route element={<ProtectedRoute requiredRole="admin" />}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          {/* Аналитика беті — тек Администраторға */}
+          <Route path="/admin/analytics" element={<AnalyticsPage />} />
+        </Route>
 
-        <h1>Первый шаг в будущее</h1>
+        {/* ── Негізгі бет бағыттауы ── */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated ? (
+              <Navigate to={isAdmin ? '/admin' : '/dashboard'} replace />
+            ) : (
+              <Navigate to="/login" replace />
+            )
+          }
+        />
 
-        <p className="status-line">
-          Сейчас: <strong>управление документами</strong>
-        </p>
+        {/* ── 404 беті ── */}
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </>
+  );
+};
 
-        <p className="subtext">
-          Подавайте заявки онлайн, отслеживайте статус и напрямую взаимодействуйте
-          с приёмной комиссией университета.
-        </p>
-
-        <div className="feature-list">
-          <div className="feature-item">📝 Онлайн подача заявок</div>
-          <div className="feature-item">🧭 Отслеживание статуса в реальном времени</div>
-          <div className="feature-item">🔒 Безопасное хранение данных</div>
-        </div>
-
-        <div className="floating-card live">
-          <strong>Живой статус</strong>
-          <p>Каждое изменение сразу видно на экране</p>
-        </div>
-
-        <div className="floating-card quick">
-          <strong>Быстрое сообщение</strong>
-          <p>Связь с комиссией остаётся под рукой</p>
-        </div>
-
-        <div className="stats">
-          <div className="stat-card">
-            <strong>24/7</strong>
-            <small>ПОДДЕРЖКА</small>
-          </div>
-          <div className="stat-card">
-            <strong>140</strong>
-            <small>МАКС. ЕНТ</small>
-          </div>
-          <div className="stat-card">
-            <strong>100%</strong>
-            <small>ОНЛАЙН</small>
-          </div>
-        </div>
-      </div>
-
-      <div className="right-pane">
-        <div className="top-actions">
-          <button className="mini active" type="button">
-            🇰🇿 ҚАЗ
-          </button>
-          <button className="mini" type="button">
-            🇷🇺 РУС
-          </button>
-        </div>
-
-        <div className="login-card">
-          <div className="icon-box">🔑</div>
-          <h2>Войти в систему</h2>
-          <p>Войдите в свой аккаунт</p>
-
-          <label htmlFor="email">Email адрес</label>
-          <input id="email" type="email" placeholder="example@mail.com" defaultValue="" />
-
-          <label htmlFor="password">Пароль</label>
-          <input id="password" type="password" placeholder="••••••••" defaultValue="" />
-
-          <button className="submit" type="button">
-            Войти →
-          </button>
-          <small>
-            Нет аккаунта? <a href="#">Зарегистрироваться</a>
-          </small>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default App
+export default App;
