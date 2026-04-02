@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import useAuth from '../hooks/useAuth';
 import useTranslation from '../hooks/useTranslation';
 import { loginUser } from '../services/authService';
@@ -17,8 +17,7 @@ const LoginPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
 
   if (isAuthenticated) {
-    navigate(isAdmin ? '/admin' : '/dashboard', { replace: true });
-    return null;
+    return <Navigate to={isAdmin ? '/admin' : '/dashboard'} replace />;
   }
 
   const handleInputChange = (e) => {
